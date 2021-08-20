@@ -47,7 +47,7 @@ def breadth_first_search(problema):
     frontera = [nodo]
     explorados = []
     while len(frontera) > 0:
-        nodo = frontera.pop()
+        nodo = frontera.pop(0)
         explorados.append(nodo.codigo)
         for accion in problema.acciones_aplicables(nodo.estado):
             hijo = nodo_hijo(problema, nodo, accion)
@@ -73,3 +73,30 @@ def backtracking_search(prob, estado):
         if resultado is not None:
             return resultado
     return None
+
+
+def best_first_search(problema, f = None):
+    if f is not None:
+        setattr(problema, "costo", f)
+    problema.costo = setattr(problema,"costo", f)
+    s = problema.estado_inicial
+    cod = problema.codigo(s)
+    nodo = Nodo(s, None, None, 0, cod)
+    frontera = ListaPrioritaria()
+    frontera.push(nodo, 0)
+    explorados = {}
+    explorados[cod] = 0
+    while not frontera.is_empty():
+        nodo = frontera.pop()
+        if problema.test_objetivo(nodo.estado):
+            return nodo
+        for hijo in expand(problema, nodo):
+            s = hijo.estado
+            cod = problema.codigo(s)
+            c = hijo.costo_camino
+            if cod not in explorados.keys() or c < explorados[cod]:
+                frontera.push(hijo, c)
+                explorados[cod] = c
+    return None
+
+

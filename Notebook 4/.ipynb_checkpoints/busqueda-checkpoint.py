@@ -1,3 +1,42 @@
+import numpy as np
+
+class ListaPrioritaria():
+    
+    def __init__(self):
+        self.diccionario = {}
+        
+    def __str__(self):
+        cadena = '['
+        inicial = True
+        for costo in self.diccionario:
+            elementos = self.diccionario[costo]
+            for elemento in elementos:
+                if inicial:
+                    cadena += '(' + str(elemento) + ',' + str(costo) + ')'
+                    inicial = False
+                else:
+                    cadena += ', (' + str(elemento) + ',' + str(costo) + ')'
+
+        return cadena + ']'
+    
+    def push(self, elemento, costo):
+        try:
+            self.diccionario[costo].append(elemento)
+        except:
+            self.diccionario[costo] = [elemento]
+            
+    def pop(self):
+        min_costo = np.min(np.array(list(self.diccionario.keys())))
+        candidatos = self.diccionario[min_costo]
+        elemento = candidatos.pop()
+        if len(candidatos) == 0:
+            del self.diccionario[min_costo]
+        return elemento
+    
+    def is_empty(self):
+        return len(self.diccionario) == 0
+
+
 class Nodo:
     
     # Clase para crear los nodos
@@ -21,6 +60,32 @@ def nodo_hijo(problema, madre, accion):
     costo_camino = madre.costo_camino + problema.costo(madre.estado, accion)
     codigo = problema.codigo(estado)
     return Nodo(estado, madre, accion, costo_camino, codigo)
+
+
+def expand(prob, nodo):
+    s = nodo.estado
+    nodos = []
+    for accion in prob.acciones_aplicables(s):
+        hijo = nodo_hijo(prob, nodo, accion)
+        nodos.append(hijo)
+    return nodos
+
+
+def depth_limited_search(prob, l):
+    s = prob.estado_inicial
+    nodo = Nodo(s, None, None, 0, prob.codigo(s))
+    frontera = [nodo]
+    resultado = None
+    while len(frontera) > 0:
+        nodo = frontera.pop()
+        if prob.test_objetivo(nodo.estado):
+            return nodo
+        if depth(nodo) >= l:
+            resultado = "cutoff"
+        elif not is_cycle(nodo):
+            for hijo in expand(prob, nodo):
+                frontera.append(hijo)
+    return resultado
 
 
 def depth_first_search(problema):
@@ -78,7 +143,6 @@ def backtracking_search(prob, estado):
 def best_first_search(problema, f = None):
     if f is not None:
         setattr(problema, "costo", f)
-    problema.costo = setattr(problema,"costo", f)
     s = problema.estado_inicial
     cod = problema.codigo(s)
     nodo = Nodo(s, None, None, 0, cod)
